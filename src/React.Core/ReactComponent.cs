@@ -8,6 +8,7 @@
  */
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -22,6 +23,8 @@ namespace React
 	/// </summary>
 	public class ReactComponent : IReactComponent
 	{
+		private static readonly ConcurrentDictionary<string, bool> _componentNameValidCache = new ConcurrentDictionary<string, bool>();
+
 		/// <summary>
 		/// Regular expression used to validate JavaScript identifiers. Used to ensure component
 		/// names are valid.
@@ -260,13 +263,10 @@ namespace React
 		/// <param name="componentName"></param>
 		internal static void EnsureComponentNameValid(string componentName)
 		{
-			var isValid = componentName.Split('.').All(segment => _identifierRegex.IsMatch(segment));
+			var isValid = _componentNameValidCache.GetOrAdd(componentName, compName => compName.Split('.').All(segment => _identifierRegex.IsMatch(segment)));
 			if (!isValid)
 			{
-				throw new ReactInvalidComponentException(string.Format(
-					"Invalid component name '{0}'",
-					componentName
-				));
+				throw new ReactInvalidComponentException($"Invalid component name '{componentName}'");
 			}
 		}
 	}
