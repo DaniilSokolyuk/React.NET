@@ -32,6 +32,7 @@ namespace React.AspNet
 	/// </summary>
 	public static class HtmlHelperExtensions
 	{
+		private static readonly HtmlString EmptyHtmlString = new HtmlString(string.Empty);
 
 		/// <summary>
 		/// Gets the React environment
@@ -81,8 +82,9 @@ namespace React.AspNet
 				{
 					reactComponent.ContainerClass = containerClass;
 				}
-				var result = reactComponent.RenderHtml(clientOnly, serverOnly, exceptionHandler);
-				return new HtmlString(result);
+
+				reactComponent.RenderHtml(htmlHelper.ViewContext.Writer, clientOnly, serverOnly, exceptionHandler);
+				return EmptyHtmlString;
 			}
 			finally
 			{
@@ -127,9 +129,13 @@ namespace React.AspNet
 				{
 					reactComponent.ContainerClass = containerClass;
 				}
-				var html = reactComponent.RenderHtml(clientOnly, exceptionHandler: exceptionHandler);
 
-				return new HtmlString(html + System.Environment.NewLine + RenderToString(GetScriptTag(reactComponent.RenderJavaScript())));
+				reactComponent.RenderHtml(htmlHelper.ViewContext.Writer, clientOnly, exceptionHandler: exceptionHandler);
+				htmlHelper.ViewContext.Writer.WriteLine();
+
+				WriteScriptTag(htmlHelper.ViewContext.Writer, bodyWriter => reactComponent.RenderJavaScript(bodyWriter));
+
+				return EmptyHtmlString;
 			}
 			finally
 			{
@@ -146,7 +152,8 @@ namespace React.AspNet
 		{
 			try
 			{
-				return GetScriptTag(Environment.GetInitJavaScript(clientOnly));
+				WriteScriptTag(htmlHelper.ViewContext.Writer, bodyWriter => Environment.GetInitJavaScript(bodyWriter, clientOnly));
+				return EmptyHtmlString;
 			}
 			finally
 			{
@@ -154,45 +161,20 @@ namespace React.AspNet
 			}
 		}
 
-		private static IHtmlString GetScriptTag(string script)
+		private static void WriteScriptTag(TextWriter writer, Action<TextWriter> bodyWriter)
 		{
-#if LEGACYASPNET
-			var tag = new TagBuilder("script")
-			{
-				InnerHtml = script,
-			};
-
+			writer.Write("<script");
 			if (Environment.Configuration.ScriptNonceProvider != null)
 			{
-				tag.Attributes.Add("nonce", Environment.Configuration.ScriptNonceProvider());
+				writer.Write(" nonce=\"");
+				writer.Write(Environment.Configuration.ScriptNonceProvider());
+				writer.Write("\"");
 			}
+			writer.Write(">");
 
-			return new HtmlString(tag.ToString());
-#else
-			var tag = new TagBuilder("script");
-			tag.InnerHtml.AppendHtml(script);
+			bodyWriter(writer);
 
-			if (Environment.Configuration.ScriptNonceProvider != null)
-			{
-				tag.Attributes.Add("nonce", Environment.Configuration.ScriptNonceProvider());
-			}
-
-			return tag;
-#endif
-		}
-
-		// In ASP.NET Core, you can no longer call `.ToString` on `IHtmlString`
-		private static string RenderToString(IHtmlString source)
-		{
-#if LEGACYASPNET
-			return source.ToString();
-#else
-			using (var writer = new StringWriter())
-			{
-				source.WriteTo(writer, HtmlEncoder.Default);
-				return writer.ToString();
-			}
-#endif
+			writer.Write("</script>");
 		}
 	}
 }

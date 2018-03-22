@@ -103,7 +103,7 @@ namespace React
 			_environment = environment;
 			_configuration = configuration;
 			ComponentName = componentName;
-			ContainerId = string.IsNullOrEmpty(containerId) ? GenerateId() : containerId;
+			ContainerId = string.IsNullOrEmpty(containerId) ? ReactIdGenerator.Generate() : containerId;
 			ContainerTag = "div";
 		}
 
@@ -115,7 +115,7 @@ namespace React
 		/// <param name="renderServerOnly">Only renders the common HTML mark up and not any React specific data attributes. Used for server-side only rendering.</param>
 		/// <param name="exceptionHandler">A custom exception handler that will be called if a component throws during a render. Args: (Exception ex, string componentName, string containerId)</param>
 		/// <returns>HTML</returns>
-		public virtual string RenderHtml(bool renderContainerOnly = false, bool renderServerOnly = false, Action<Exception, string, string> exceptionHandler = null)
+		public string RenderHtml(bool renderContainerOnly = false, bool renderServerOnly = false, Action<Exception, string, string> exceptionHandler = null)
 		{
 			var writer = new StringWriter();
 			RenderHtml(writer, renderContainerOnly, renderServerOnly, exceptionHandler);
@@ -148,10 +148,12 @@ namespace React
 			{
 				try
 				{
-					var reactRenderCommand = renderServerOnly
-						? string.Format("ReactDOMServer.renderToStaticMarkup({0})", GetComponentInitialiser())
-						: string.Format("ReactDOMServer.renderToString({0})", GetComponentInitialiser());
-					html = _environment.Execute<string>(reactRenderCommand);
+					var stringWriter = new StringWriter();
+					stringWriter.Write(renderServerOnly ? "ReactDOMServer.renderToStaticMarkup(" : "ReactDOMServer.renderToString(");
+					WriteComponentInitialiser(stringWriter);
+					stringWriter.Write(")");
+
+					html = _environment.Execute<string>(stringWriter.ToString());
 
 					if (renderServerOnly)
 					{
@@ -197,7 +199,7 @@ namespace React
 		/// server-rendered HTML.
 		/// </summary>
 		/// <returns>JavaScript</returns>
-		public virtual string RenderJavaScript()
+		public string RenderJavaScript()
 		{
 			var writer = new StringWriter();
 			RenderJavaScript(writer);
@@ -213,7 +215,7 @@ namespace React
 		public virtual void RenderJavaScript(TextWriter writer)
 		{
 			writer.Write("ReactDOM.hydrate(");
-			writer.Write(GetComponentInitialiser());
+			WriteComponentInitialiser(writer);
 			writer.Write(", document.getElementById(");
 			writer.Write(JsonConvert.SerializeObject(ContainerId, _configuration.JsonSerializerSettings)); // SerializeObject accepts null settings
 			writer.Write("))");
@@ -243,13 +245,13 @@ namespace React
 		/// Gets the JavaScript code to initialise the component
 		/// </summary>
 		/// <returns>JavaScript for component initialisation</returns>
-		protected virtual string GetComponentInitialiser()
+		protected virtual void WriteComponentInitialiser(TextWriter writer)
 		{
-			return string.Format(
-				"React.createElement({0}, {1})",
-				ComponentName,
-				_serializedProps
-			);
+			writer.Write("React.createElement(");
+			writer.Write(ComponentName);
+			writer.Write(", ");
+			writer.Write(_serializedProps);
+			writer.Write(")");
 		}
 
 		/// <summary>
@@ -266,15 +268,6 @@ namespace React
 					componentName
 				));
 			}
-		}
-
-		/// <summary>
-		/// Generates a unique identifier for this component, if one was not passed in.
-		/// </summary>
-		/// <returns></returns>
-		private static string GenerateId()
-		{
-			return "react_" + Guid.NewGuid().ToShortGuid();
 		}
 	}
 }
