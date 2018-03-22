@@ -11,6 +11,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using JavaScriptEngineSwitcher.Core;
 using Newtonsoft.Json;
@@ -151,7 +152,7 @@ namespace React
 			{
 				try
 				{
-					var stringWriter = new StringWriter();
+					var stringWriter = new StringWriter(new StringBuilder(_serializedProps.Length + ComponentName.Length + 100));
 					stringWriter.Write(renderServerOnly ? "ReactDOMServer.renderToStaticMarkup(" : "ReactDOMServer.renderToString(");
 					WriteComponentInitialiser(stringWriter);
 					stringWriter.Write(")");
@@ -219,9 +220,9 @@ namespace React
 		{
 			writer.Write("ReactDOM.hydrate(");
 			WriteComponentInitialiser(writer);
-			writer.Write(", document.getElementById(");
-			writer.Write(JsonConvert.SerializeObject(ContainerId, _configuration.JsonSerializerSettings)); // SerializeObject accepts null settings
-			writer.Write("))");
+			writer.Write(", document.getElementById(\"");
+			writer.Write(ContainerId);
+			writer.Write("\"))");
 		}
 
 		/// <summary>

@@ -89,9 +89,9 @@ namespace React.Router
 		{
 			writer.Write("ReactDOM.hydrate(");
 			base.WriteComponentInitialiser(writer);
-			writer.Write(", document.getElementById(");
-			writer.Write(JsonConvert.SerializeObject(ContainerId, _configuration.JsonSerializerSettings));
-			writer.Write("))");
+			writer.Write(", document.getElementById(\"");
+			writer.Write(ContainerId);
+			writer.Write("\"))");
 		}
 	}
 }
