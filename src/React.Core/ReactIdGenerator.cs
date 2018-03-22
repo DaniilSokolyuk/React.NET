@@ -24,7 +24,7 @@ namespace React
 		private static readonly char[] reactPrefix = "react_".ToCharArray();
 
 		[ThreadStatic]
-		private static char[] chars;
+		private static char[] _chars;
 
 		/// <summary>
 		/// Returns a short react identifier starts with "react_".
@@ -32,10 +32,12 @@ namespace React
 		/// <returns></returns>
 		public static string Generate()
 		{
+			var chars = _chars;
 			if (chars == null)
 			{
 				chars = new char[19];
-				Array.Copy(reactPrefix, 0, chars, 0, reactPrefix.Length); 
+				Array.Copy(reactPrefix, 0, chars, 0, reactPrefix.Length);
+				_chars = chars;
 			}
 
 			var id = Interlocked.Increment(ref _random);

@@ -207,16 +207,5 @@ namespace React
 		/// <param name="provider"></param>
 		/// <returns></returns>
 		IReactSiteConfiguration SetScriptNonceProvider(Func<string> provider);
-
-		/// <summary>
-		/// Gets or sets whether HTML extensions methods writes its output directly to ViewContext.Writer 
-		/// </summary>
-		bool UseViewContextWriter { get; set; }
-
-		/// <summary>
-		/// Gets or sets whether using HTML extensions methods writes its output directly to ViewContext.Writer
-		/// </summary>
-		/// <returns>The configuration, for chaining</returns>
-		IReactSiteConfiguration SetUseViewContextWriter(bool useViewContextWriter);
 	}
 }

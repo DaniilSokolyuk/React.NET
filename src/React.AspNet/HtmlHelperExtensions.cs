@@ -9,16 +9,12 @@
 
 using System;
 using System.IO;
-
 #if LEGACYASPNET
 using System.Web;
-using System.Web.Mvc;
 using IHtmlHelper = System.Web.Mvc.HtmlHelper;
 #else
-using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using IHtmlString = Microsoft.AspNetCore.Html.IHtmlContent;
-using Microsoft.AspNetCore.Html;
 #endif
 
 #if LEGACYASPNET
@@ -32,8 +28,6 @@ namespace React.AspNet
 	/// </summary>
 	public static class HtmlHelperExtensions
 	{
-		private static readonly HtmlString EmptyHtmlString = new HtmlString(string.Empty);
-
 		/// <summary>
 		/// Gets the React environment
 		/// </summary>
@@ -71,28 +65,28 @@ namespace React.AspNet
 			Action<Exception, string, string> exceptionHandler = null
 		)
 		{
-			try
+			return new ActionHtmlString(writer =>
 			{
-				var reactComponent = Environment.CreateComponent(componentName, props, containerId, clientOnly, serverOnly);
-				if (!string.IsNullOrEmpty(htmlTag))
+				try
 				{
-					reactComponent.ContainerTag = htmlTag;
+					var reactComponent = Environment.CreateComponent(componentName, props, containerId, clientOnly, serverOnly);
+					if (!string.IsNullOrEmpty(htmlTag))
+					{
+						reactComponent.ContainerTag = htmlTag;
+					}
+
+					if (!string.IsNullOrEmpty(containerClass))
+					{
+						reactComponent.ContainerClass = containerClass;
+					}
+
+					reactComponent.RenderHtml(writer, clientOnly, serverOnly, exceptionHandler);
 				}
-				if (!string.IsNullOrEmpty(containerClass))
+				finally
 				{
-					reactComponent.ContainerClass = containerClass;
+					Environment.ReturnEngineToPool();
 				}
-
-				var writer = GetWriter(htmlHelper);
-
-				reactComponent.RenderHtml(writer, clientOnly, serverOnly, exceptionHandler);
-
-				return CreateResult(writer);
-			}
-			finally
-			{
-				Environment.ReturnEngineToPool();
-			}
+			});
 		}
 
 		/// <summary>
@@ -121,30 +115,30 @@ namespace React.AspNet
 			Action<Exception, string, string> exceptionHandler = null
 		)
 		{
-			try
+			return new ActionHtmlString(writer =>
 			{
-				var reactComponent = Environment.CreateComponent(componentName, props, containerId, clientOnly);
-				if (!string.IsNullOrEmpty(htmlTag))
+				try
 				{
-					reactComponent.ContainerTag = htmlTag;
+					var reactComponent = Environment.CreateComponent(componentName, props, containerId, clientOnly);
+					if (!string.IsNullOrEmpty(htmlTag))
+					{
+						reactComponent.ContainerTag = htmlTag;
+					}
+
+					if (!string.IsNullOrEmpty(containerClass))
+					{
+						reactComponent.ContainerClass = containerClass;
+					}
+
+					reactComponent.RenderHtml(writer, clientOnly, exceptionHandler: exceptionHandler);
+					writer.WriteLine();
+					WriteScriptTag(writer, bodyWriter => reactComponent.RenderJavaScript(bodyWriter));
 				}
-				if (!string.IsNullOrEmpty(containerClass))
+				finally
 				{
-					reactComponent.ContainerClass = containerClass;
+					Environment.ReturnEngineToPool();
 				}
-
-				var writer = GetWriter(htmlHelper);
-
-				reactComponent.RenderHtml(writer, clientOnly, exceptionHandler: exceptionHandler);
-				writer.WriteLine();
-				WriteScriptTag(writer, bodyWriter => reactComponent.RenderJavaScript(bodyWriter));
-
-				return CreateResult(writer);
-			}
-			finally
-			{
-				Environment.ReturnEngineToPool();
-			}
+			});
 		}
 
 		/// <summary>
@@ -154,18 +148,17 @@ namespace React.AspNet
 		/// <returns>JavaScript for all components</returns>
 		public static IHtmlString ReactInitJavaScript(this IHtmlHelper htmlHelper, bool clientOnly = false)
 		{
-			try
+			return new ActionHtmlString(writer =>
 			{
-				var writer = GetWriter(htmlHelper);
-
-				WriteScriptTag(writer, bodyWriter => Environment.GetInitJavaScript(bodyWriter, clientOnly));
-
-				return CreateResult(writer);
-			}
-			finally
-			{
-				Environment.ReturnEngineToPool();
-			}
+				try
+				{
+					WriteScriptTag(writer, bodyWriter => Environment.GetInitJavaScript(bodyWriter, clientOnly));
+				}
+				finally
+				{
+					Environment.ReturnEngineToPool();
+				}
+			});
 		}
 
 		private static void WriteScriptTag(TextWriter writer, Action<TextWriter> bodyWriter)
@@ -177,21 +170,12 @@ namespace React.AspNet
 				writer.Write(Environment.Configuration.ScriptNonceProvider());
 				writer.Write("\"");
 			}
+
 			writer.Write(">");
 
 			bodyWriter(writer);
 
 			writer.Write("</script>");
-		}
-
-		private static TextWriter GetWriter(IHtmlHelper htmlHelper)
-		{
-			return Environment.Configuration.UseViewContextWriter ? htmlHelper.ViewContext.Writer : new StringWriter();
-		}
-
-		private static IHtmlString CreateResult(TextWriter writer)
-		{
-			return Environment.Configuration.UseViewContextWriter ? EmptyHtmlString : new HtmlString(writer.ToString());
 		}
 	}
 }

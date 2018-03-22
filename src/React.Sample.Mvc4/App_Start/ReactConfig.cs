@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  Copyright (c) 2014-Present, Facebook, Inc.
  *  All rights reserved.
  *
@@ -17,8 +17,7 @@ namespace React.Sample.Mvc4
 		{
 			ReactSiteConfiguration.Configuration
 				.SetReuseJavaScriptEngines(true)
-				.AddScript("~/Content/Sample.jsx")
-				.SetUseViewContextWriter(true);
+				.AddScript("~/Content/Sample.jsx");
 		}
 	}
 }

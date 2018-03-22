@@ -154,13 +154,17 @@ namespace React
 			if (!renderContainerOnly)
 			{
 				var stringWriter = _sharedStringWriter;
-				_sharedStringWriter = null;
-
-				if (stringWriter == null)
+				if (stringWriter != null)
 				{
-					stringWriter = new StringWriter(new StringBuilder(_serializedProps.Length + ComponentName.Length + 100));
+					stringWriter.GetStringBuilder().Clear();
 				}
-
+				else
+				{
+					_sharedStringWriter = 
+						stringWriter = 
+						new StringWriter(new StringBuilder(Math.Max(512, _serializedProps.Length + ComponentName.Length + 100)));
+				}
+				
 				try
 				{
 					stringWriter.Write(renderServerOnly ? "ReactDOMServer.renderToStaticMarkup(" : "ReactDOMServer.renderToString(");
@@ -183,11 +187,6 @@ namespace React
 					}
 
 					exceptionHandler(ex, ComponentName, ContainerId);
-				}
-				finally
-				{
-					stringWriter.GetStringBuilder().Clear();
-					_sharedStringWriter = stringWriter;
 				}
 			}
 			

@@ -75,8 +75,7 @@ namespace React.Sample.CoreMvc
 					{
 						Logger.LogError("React component exception thrown!" + ex.ToString());
 					})
-					.SetUseDebugReact(true)
-					.SetUseViewContextWriter(true);
+					.SetUseDebugReact(true);
 			});
 
 			// Add static files to the request pipeline.
