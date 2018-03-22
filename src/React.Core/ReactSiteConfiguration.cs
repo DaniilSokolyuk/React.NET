@@ -357,7 +357,7 @@ namespace React
 		/// <returns>The configuration, for chaining</returns>
 		public IReactSiteConfiguration SetUseViewContextWriter(bool useViewContextWriter)
 		{
-			UseViewContextWriter = UseViewContextWriter;
+			UseViewContextWriter = useViewContextWriter;
 			return this;
 		}
 	}

@@ -1,4 +1,4 @@
-﻿/*
+/*
  *  Copyright (c) 2014-Present, Facebook, Inc.
  *  All rights reserved.
  *
@@ -327,7 +327,7 @@ namespace React
 		/// </summary>
 		/// <param name="clientOnly">True if server-side rendering will be bypassed. Defaults to false.</param>
 		/// <returns>JavaScript for all components</returns>
-		public virtual string GetInitJavaScript(bool clientOnly = false)
+		public string GetInitJavaScript(bool clientOnly = false)
 		{
 			var writer = new StringWriter();
 			GetInitJavaScript(writer, clientOnly);
@@ -338,7 +338,7 @@ namespace React
 		/// Renders the JavaScript required to initialise all components client-side. This will 
 		/// attach event handlers to the server-rendered HTML.
 		/// </summary>
-		/// <param name="writer"></param>
+		/// <param name="writer">The <see cref="T:System.IO.TextWriter" /> to which the content is written</param>
 		/// <param name="clientOnly">True if server-side rendering will be bypassed. Defaults to false.</param>
 		/// <returns>JavaScript for all components</returns>
 		public virtual void GetInitJavaScript(TextWriter writer, bool clientOnly = false)
