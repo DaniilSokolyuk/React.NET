@@ -53,6 +53,7 @@ namespace React
 					ex.Message,
 					ContainerId
 				));
+			UseViewContextWriter = false;
 		}
 
 		/// <summary>
@@ -342,6 +343,21 @@ namespace React
 		public IReactSiteConfiguration SetScriptNonceProvider(Func<string> provider)
 		{
 			ScriptNonceProvider = provider;
+			return this;
+		}
+
+		/// <summary>
+		/// Gets or sets whether HTML extensions methods writes its output directly to ViewContext.Writer 
+		/// </summary>
+		public bool UseViewContextWriter { get; set; }
+
+		/// <summary>
+		/// Gets or sets whether using HTML extensions methods writes its output directly to ViewContext.Writer
+		/// </summary>
+		/// <returns>The configuration, for chaining</returns>
+		public IReactSiteConfiguration SetUseViewContextWriter(bool useViewContextWriter)
+		{
+			UseViewContextWriter = UseViewContextWriter;
 			return this;
 		}
 	}

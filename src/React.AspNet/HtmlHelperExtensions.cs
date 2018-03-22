@@ -83,8 +83,11 @@ namespace React.AspNet
 					reactComponent.ContainerClass = containerClass;
 				}
 
-				reactComponent.RenderHtml(htmlHelper.ViewContext.Writer, clientOnly, serverOnly, exceptionHandler);
-				return EmptyHtmlString;
+				var writer = GetWriter(htmlHelper);
+
+				reactComponent.RenderHtml(writer, clientOnly, serverOnly, exceptionHandler);
+
+				return CreateResult(writer);
 			}
 			finally
 			{
@@ -130,12 +133,13 @@ namespace React.AspNet
 					reactComponent.ContainerClass = containerClass;
 				}
 
-				reactComponent.RenderHtml(htmlHelper.ViewContext.Writer, clientOnly, exceptionHandler: exceptionHandler);
-				htmlHelper.ViewContext.Writer.WriteLine();
+				var writer = GetWriter(htmlHelper);
 
-				WriteScriptTag(htmlHelper.ViewContext.Writer, bodyWriter => reactComponent.RenderJavaScript(bodyWriter));
+				reactComponent.RenderHtml(writer, clientOnly, exceptionHandler: exceptionHandler);
+				writer.WriteLine();
+				WriteScriptTag(writer, bodyWriter => reactComponent.RenderJavaScript(bodyWriter));
 
-				return EmptyHtmlString;
+				return CreateResult(writer);
 			}
 			finally
 			{
@@ -152,8 +156,11 @@ namespace React.AspNet
 		{
 			try
 			{
-				WriteScriptTag(htmlHelper.ViewContext.Writer, bodyWriter => Environment.GetInitJavaScript(bodyWriter, clientOnly));
-				return EmptyHtmlString;
+				var writer = GetWriter(htmlHelper);
+
+				WriteScriptTag(writer, bodyWriter => Environment.GetInitJavaScript(bodyWriter, clientOnly));
+
+				return CreateResult(writer);
 			}
 			finally
 			{
@@ -175,6 +182,16 @@ namespace React.AspNet
 			bodyWriter(writer);
 
 			writer.Write("</script>");
+		}
+
+		private static TextWriter GetWriter(IHtmlHelper htmlHelper)
+		{
+			return Environment.Configuration.UseViewContextWriter ? htmlHelper.ViewContext.Writer : new StringWriter();
+		}
+
+		private static IHtmlString CreateResult(TextWriter writer)
+		{
+			return Environment.Configuration.UseViewContextWriter ? EmptyHtmlString : new HtmlString(writer.ToString());
 		}
 	}
 }
