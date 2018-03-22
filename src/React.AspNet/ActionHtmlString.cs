@@ -9,6 +9,7 @@
 
 using System;
 using System.IO;
+
 #if LEGACYASPNET
 using System.Text;
 using System.Web;
@@ -25,11 +26,11 @@ namespace React.AspNet
 {
 	public class ActionHtmlString : IHtmlString
 	{
-		private readonly Action<TextWriter> _textwriter;
+		private readonly Action<TextWriter> _textWriter;
 
-		public ActionHtmlString(Action<TextWriter> textwriter)
+		public ActionHtmlString(Action<TextWriter> textWriter)
 		{
-			_textwriter = textwriter;
+			_textWriter = textWriter;
 		}
 
 #if LEGACYASPNET
@@ -48,13 +49,13 @@ namespace React.AspNet
 				_sharedStringWriter = stringWriter = new StringWriter(new StringBuilder(512));
 			}
 
-			_textwriter(stringWriter);
+			_textWriter(stringWriter);
 			return stringWriter.ToString();
 		}
 #else
 		public void WriteTo(TextWriter writer, HtmlEncoder encoder)
 		{
-			_textwriter(writer);
+			_textWriter(writer);
 		}
 #endif
 	}
