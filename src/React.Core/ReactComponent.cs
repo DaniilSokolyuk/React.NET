@@ -26,6 +26,9 @@ namespace React
 	{
 		private static readonly ConcurrentDictionary<string, bool> _componentNameValidCache = new ConcurrentDictionary<string, bool>();
 
+		[ThreadStatic]
+		private static StringBuilder _sharedSb;
+
 		/// <summary>
 		/// Regular expression used to validate JavaScript identifiers. Used to ensure component
 		/// names are valid.
@@ -150,9 +153,17 @@ namespace React
 			var html = string.Empty;
 			if (!renderContainerOnly)
 			{
+				var stringBuilder = _sharedSb;
+				_sharedSb = null;
+
+				if (stringBuilder == null)
+				{
+					stringBuilder = new StringBuilder(_serializedProps.Length + ComponentName.Length + 100);
+				}
+
 				try
 				{
-					var stringWriter = new StringWriter(new StringBuilder(_serializedProps.Length + ComponentName.Length + 100));
+					var stringWriter = new StringWriter(stringBuilder);
 					stringWriter.Write(renderServerOnly ? "ReactDOMServer.renderToStaticMarkup(" : "ReactDOMServer.renderToString(");
 					WriteComponentInitialiser(stringWriter);
 					stringWriter.Write(")");
@@ -173,6 +184,11 @@ namespace React
 					}
 
 					exceptionHandler(ex, ComponentName, ContainerId);
+				}
+				finally
+				{
+					stringBuilder.Clear();
+					_sharedSb = stringBuilder;
 				}
 			}
 			

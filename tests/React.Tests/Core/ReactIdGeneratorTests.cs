@@ -15,7 +15,7 @@ namespace React.Tests.Core
 	public class ReactIdGeneratorTests
 	{
 		[Fact]
-		public void ToShortGuid()
+		public void GuidShouldHaveFixedRange()
 		{
 			var shortGuid = ReactIdGenerator.Generate();
 
@@ -31,7 +31,7 @@ namespace React.Tests.Core
 		}
 
 		[Fact]
-		public void IdsIsNotEquals()
+		public void TwoGuidsShouldNotEqual()
 		{
 			var shortGuid1 = ReactIdGenerator.Generate();
 			var shortGuid2 = ReactIdGenerator.Generate();
