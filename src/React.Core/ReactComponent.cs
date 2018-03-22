@@ -8,6 +8,7 @@
  */
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using JavaScriptEngineSwitcher.Core;
@@ -116,6 +117,22 @@ namespace React
 		/// <returns>HTML</returns>
 		public virtual string RenderHtml(bool renderContainerOnly = false, bool renderServerOnly = false, Action<Exception, string, string> exceptionHandler = null)
 		{
+			var writer = new StringWriter();
+			RenderHtml(writer, renderContainerOnly, renderServerOnly, exceptionHandler);
+			return writer.ToString();
+		}
+
+		/// <summary>
+		/// Renders the HTML for this component. This will execute the component server-side and
+		/// return the rendered HTML.
+		/// </summary>
+		/// <param name="writer"></param>
+		/// <param name="renderContainerOnly">Only renders component container. Used for client-side only rendering.</param>
+		/// <param name="renderServerOnly">Only renders the common HTML mark up and not any React specific data attributes. Used for server-side only rendering.</param>
+		/// <param name="exceptionHandler">A custom exception handler that will be called if a component throws during a render. Args: (Exception ex, string componentName, string containerId)</param>
+		/// <returns>HTML</returns>
+		public virtual void RenderHtml(TextWriter writer, bool renderContainerOnly = false, bool renderServerOnly = false, Action<Exception, string, string> exceptionHandler = null)
+		{
 			if (!_configuration.UseServerSideRendering)
 			{
 				renderContainerOnly = true;
@@ -138,7 +155,8 @@ namespace React
 
 					if (renderServerOnly)
 					{
-						return html;
+						writer.Write(html);
+						return;
 					}
 				}
 				catch (JsRuntimeException ex)
@@ -151,19 +169,26 @@ namespace React
 					exceptionHandler(ex, ComponentName, ContainerId);
 				}
 			}
-
-			string attributes = string.Format("id=\"{0}\"", ContainerId);
+			
+			writer.Write("<");
+			writer.Write(ContainerTag);
+			writer.Write(" ");
+			
+			writer.Write("id=\"");
+			writer.Write(ContainerId);
+			writer.Write("\"");
 			if (!string.IsNullOrEmpty(ContainerClass))
 			{
-				attributes += string.Format(" class=\"{0}\"", ContainerClass);
+				writer.Write(" class=\"");
+				writer.Write(ContainerClass);
+				writer.Write("\"");
 			}
-
-			return string.Format(
-				"<{2} {0}>{1}</{2}>",
-				attributes,
-				html,
-				ContainerTag
-			);
+			
+			writer.Write(">");
+			writer.Write(html);
+			writer.Write("</");
+			writer.Write(ContainerTag);
+			writer.Write(">");
 		}
 
 		/// <summary>
@@ -174,11 +199,24 @@ namespace React
 		/// <returns>JavaScript</returns>
 		public virtual string RenderJavaScript()
 		{
-			return string.Format(
-				"ReactDOM.hydrate({0}, document.getElementById({1}))",
-				GetComponentInitialiser(),
-				JsonConvert.SerializeObject(ContainerId, _configuration.JsonSerializerSettings) // SerializeObject accepts null settings
-			);
+			var writer = new StringWriter();
+			RenderJavaScript(writer);
+			return writer.ToString();
+		}
+		
+		/// <summary>
+		/// Renders the JavaScript required to initialise this component client-side. This will
+		/// initialise the React component, which includes attach event handlers to the
+		/// server-rendered HTML.
+		/// </summary>
+		/// <returns>JavaScript</returns>
+		public virtual void RenderJavaScript(TextWriter writer)
+		{
+			writer.Write("ReactDOM.hydrate(");
+			writer.Write(GetComponentInitialiser());
+			writer.Write(", document.getElementById(");
+			writer.Write(JsonConvert.SerializeObject(ContainerId, _configuration.JsonSerializerSettings)); // SerializeObject accepts null settings
+			writer.Write("))");
 		}
 
 		/// <summary>
