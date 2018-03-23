@@ -28,7 +28,7 @@ namespace React
 
 		[ThreadStatic]
 		private static StringWriter _sharedStringWriter;
-
+		
 		/// <summary>
 		/// Regular expression used to validate JavaScript identifiers. Used to ensure component
 		/// names are valid.
@@ -45,16 +45,6 @@ namespace React
 		/// Global site configuration
 		/// </summary>
 		protected readonly IReactSiteConfiguration _configuration;
-
-		/// <summary>
-		/// Raw props for this component
-		/// </summary>
-		protected object _props;
-
-		/// <summary>
-		/// JSON serialized props for this component
-		/// </summary>
-		protected string _serializedProps;
 
 		/// <summary>
 		/// Gets or sets the name of the component
@@ -84,18 +74,7 @@ namespace React
 		/// <summary>
 		/// Gets or sets the props for this component
 		/// </summary>
-		public object Props
-		{
-			get { return _props; }
-			set
-			{
-				_props = value;
-				_serializedProps = JsonConvert.SerializeObject(
-					value,
-					_configuration.JsonSerializerSettings
-				);
-			}
-		}
+		public object Props { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ReactComponent"/> class.
@@ -162,7 +141,7 @@ namespace React
 				{
 					_sharedStringWriter = 
 						stringWriter = 
-						new StringWriter(new StringBuilder(Math.Max(512, _serializedProps.Length + ComponentName.Length + 100)));
+						new StringWriter(new StringBuilder(512));
 				}
 				
 				try
@@ -245,10 +224,7 @@ namespace React
 		protected virtual void EnsureComponentExists()
 		{
 			// This is safe as componentName was validated via EnsureComponentNameValid()
-			var componentExists = _environment.Execute<bool>(string.Format(
-				"typeof {0} !== 'undefined'",
-				ComponentName
-			));
+			var componentExists = _environment.Execute<bool>($"typeof {ComponentName} !== 'undefined'");
 			if (!componentExists)
 			{
 				throw new ReactInvalidComponentException(string.Format(
@@ -268,8 +244,25 @@ namespace React
 			writer.Write("React.createElement(");
 			writer.Write(ComponentName);
 			writer.Write(", ");
-			writer.Write(_serializedProps);
+			WriteSerializedProps(writer);
 			writer.Write(")");
+		}
+
+		/// <summary>
+		/// Write serialized Props to writer
+		/// </summary>
+		/// <param name="writer">The <see cref="T:System.IO.TextWriter" /> to which the content is written</param>
+		protected void WriteSerializedProps(TextWriter writer)
+		{
+			//TODO: cache
+			using (var jsonWriter = new JsonTextWriter(writer))
+			{
+				jsonWriter.CloseOutput = false;
+				jsonWriter.AutoCompleteOnClose = false;
+
+				var jsonSerializer = JsonSerializer.Create(_configuration.JsonSerializerSettings);
+				jsonSerializer.Serialize(jsonWriter, Props);
+			}
 		}
 
 		/// <summary>

@@ -71,7 +71,7 @@ namespace React.Router
 			writer.Write("React.createElement(");
 			writer.Write(ComponentName);
 			writer.Write(", Object.assign(");
-			writer.Write(_serializedProps);
+			WriteSerializedProps(writer);
 			writer.Write(", {{ location: '");
 			writer.Write(_path);
 			writer.Write("}', context: context }}))");
