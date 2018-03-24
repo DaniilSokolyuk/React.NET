@@ -1,4 +1,4 @@
-﻿/*
+/*
  *  Copyright (c) 2014-Present, Facebook, Inc.
  *  All rights reserved.
  *
@@ -24,19 +24,28 @@ namespace React.Web.Mvc
 namespace React.AspNet
 #endif
 {
+	/// <summary>
+	/// IHtmlString or IHtmlString action wrapper implementation
+	/// </summary>
 	public class ActionHtmlString : IHtmlString
 	{
 		private readonly Action<TextWriter> _textWriter;
 
+		/// <summary>
+		/// Constructor IHtmlString or IHtmlString action wrapper implementation
+		/// </summary>
+		/// <param name="textWriter"></param>
 		public ActionHtmlString(Action<TextWriter> textWriter)
 		{
 			_textWriter = textWriter;
 		}
 
 #if LEGACYASPNET
-		[ThreadStatic] 
+		[ThreadStatic]
 		private static StringWriter _sharedStringWriter;
 
+		/// <summary>Returns an HTML-encoded string.</summary>
+		/// <returns>An HTML-encoded string.</returns>
 		public string ToHtmlString()
 		{
 			var stringWriter = _sharedStringWriter;
@@ -53,6 +62,12 @@ namespace React.AspNet
 			return stringWriter.ToString();
 		}
 #else
+		/// <summary>
+		/// Writes the content by encoding it with the specified <paramref name="encoder" />
+		/// to the specified <paramref name="writer" />.
+		/// </summary>
+		/// <param name="writer">The <see cref="T:System.IO.TextWriter" /> to which the content is written.</param>
+		/// <param name="encoder">The <see cref="T:System.Text.Encodings.Web.HtmlEncoder" /> which encodes the content to be written.</param>
 		public void WriteTo(TextWriter writer, HtmlEncoder encoder)
 		{
 			_textWriter(writer);
