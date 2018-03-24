@@ -268,7 +268,7 @@ namespace React
 		{
 			if (_serializedProps == null)
 			{
-				var pool = AssemblyRegistration.Container.Resolve<IArrayPool<char>>();
+				var pool = ReactArrayPool<char>.Instance;
 
 				_serializedProps = new PagedPooledTextWriter(pool);
 

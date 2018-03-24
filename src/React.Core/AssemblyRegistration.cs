@@ -40,8 +40,6 @@ namespace React
 			container.Register<JsEngineSwitcher>((c, o) => JsEngineSwitcher.Instance);
 			container.Register<IJavaScriptEngineFactory, JavaScriptEngineFactory>().AsSingleton();
 
-			container.Register<IArrayPool<char>, ReactArrayPool<char>>().AsSingleton();
-
 			container.Register<IReactEnvironment, ReactEnvironment>().AsPerRequestSingleton();
 		}
 	}
