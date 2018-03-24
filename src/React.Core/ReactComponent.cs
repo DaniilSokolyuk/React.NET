@@ -148,7 +148,7 @@ namespace React
 				{
 					stringWriter.Write(renderServerOnly ? "ReactDOMServer.renderToStaticMarkup(" : "ReactDOMServer.renderToString(");
 					WriteComponentInitialiser(stringWriter);
-					stringWriter.Write(")");
+					stringWriter.Write(')');
 
 					html = _environment.Execute<string>(stringWriter.ToString());
 
@@ -169,25 +169,23 @@ namespace React
 				}
 			}
 			
-			writer.Write("<");
+			writer.Write('<');
 			writer.Write(ContainerTag);
-			writer.Write(" ");
-			
-			writer.Write("id=\"");
+			writer.Write(" id=\"");
 			writer.Write(ContainerId);
-			writer.Write("\"");
+			writer.Write('"');
 			if (!string.IsNullOrEmpty(ContainerClass))
 			{
 				writer.Write(" class=\"");
 				writer.Write(ContainerClass);
-				writer.Write("\"");
+				writer.Write('"');
 			}
 			
-			writer.Write(">");
+			writer.Write('>');
 			writer.Write(html);
 			writer.Write("</");
 			writer.Write(ContainerTag);
-			writer.Write(">");
+			writer.Write('>');
 		}
 
 		/// <summary>
@@ -245,7 +243,7 @@ namespace React
 			writer.Write(ComponentName);
 			writer.Write(", ");
 			WriteSerializedProps(writer);
-			writer.Write(")");
+			writer.Write(')');
 		}
 
 		/// <summary>

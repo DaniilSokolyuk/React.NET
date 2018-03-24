@@ -355,7 +355,7 @@ namespace React
 				if (!component.ServerOnly)
 				{
 					component.RenderJavaScript(writer);
-					writer.Write(";");
+					writer.WriteLine(';');
 				}
 			}
 		}
