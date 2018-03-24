@@ -1,4 +1,4 @@
-﻿/*
+/*
  *  Copyright (c) 2014-Present, Facebook, Inc.
  *  All rights reserved.
  *
@@ -10,6 +10,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -155,26 +156,17 @@ namespace React
 		/// <summary>
 		/// Gets the Babel transformer for this environment.
 		/// </summary>
-		public virtual IBabel Babel
-		{
-			get { return _babelTransformer.Value; }
-		}
+		public virtual IBabel Babel => _babelTransformer.Value;
 
 		/// <summary>
 		/// Gets the version of the JavaScript engine in use by ReactJS.NET
 		/// </summary>
-		public virtual string EngineVersion
-		{
-			get { return Engine.Name + " " + Engine.Version; }
-		}
+		public virtual string EngineVersion => Engine.Name + " " + Engine.Version;
 
 		/// <summary>
 		/// Gets the version number of ReactJS.NET
 		/// </summary>
-		public virtual string Version
-		{
-			get { return _version.Value; }
-		}
+		public virtual string Version => _version.Value;
 
 		/// <summary>
 		/// Ensures any user-provided scripts have been loaded. This only loads JSX files; files
@@ -326,27 +318,37 @@ namespace React
 		/// </summary>
 		/// <param name="clientOnly">True if server-side rendering will be bypassed. Defaults to false.</param>
 		/// <returns>JavaScript for all components</returns>
-		public virtual string GetInitJavaScript(bool clientOnly = false)
+		public string GetInitJavaScript(bool clientOnly = false)
 		{
-			var fullScript = new StringBuilder();
-			
+			var writer = new StringWriter();
+			GetInitJavaScript(writer, clientOnly);
+			return writer.ToString();
+		}
+
+		/// <summary>
+		/// Renders the JavaScript required to initialise all components client-side. This will 
+		/// attach event handlers to the server-rendered HTML.
+		/// </summary>
+		/// <param name="writer">The <see cref="T:System.IO.TextWriter" /> to which the content is written</param>
+		/// <param name="clientOnly">True if server-side rendering will be bypassed. Defaults to false.</param>
+		/// <returns>JavaScript for all components</returns>
+		public virtual void GetInitJavaScript(TextWriter writer, bool clientOnly = false)
+		{
 			// Propagate any server-side console.log calls to corresponding client-side calls.
 			if (!clientOnly)
 			{
 				var consoleCalls = Execute<string>("console.getCalls()");
-				fullScript.Append(consoleCalls);
+				writer.Write(consoleCalls);
 			}
 			
 			foreach (var component in _components)
 			{
 				if (!component.ServerOnly)
 				{
-					fullScript.Append(component.RenderJavaScript());
-					fullScript.AppendLine(";");
+					component.RenderJavaScript(writer);
+					writer.WriteLine(';');
 				}
 			}
-
-			return fullScript.ToString();
 		}
 
 		/// <summary>
@@ -368,7 +370,7 @@ namespace React
 			var engine = _engineFactory.GetEngineForCurrentThread();
 			EnsureBabelLoaded(engine);
 
-#if NET40
+#if NET451
 			try
 			{
 				return engine.CallFunctionReturningJson<T>(function, args);
@@ -420,7 +422,7 @@ namespace React
 		/// </summary>
 		private static string GetVersion()
 		{
-#if NET40
+#if NET451
 			var assembly = Assembly.GetExecutingAssembly();
 			var rawVersion = FileVersionInfo.GetVersionInfo(assembly.Location).FileVersion;
 #else
@@ -440,6 +442,11 @@ namespace React
 		{
 			_engineFactory.DisposeEngineForCurrentThread();
 			ReturnEngineToPool();
+			foreach (var component in _components)
+			{
+				component.Dispose();
+			}
+			_components.Clear();
 		}
 
 		/// <summary>
@@ -481,10 +488,7 @@ namespace React
 		/// <summary>
 		/// Gets the site-wide configuration.
 		/// </summary>
-		public virtual IReactSiteConfiguration Configuration
-		{
-			get { return _config; }
-		}
+		public virtual IReactSiteConfiguration Configuration => _config;
 
 		/// <summary>
 		/// Ensures that Babel has been loaded into the JavaScript engine.
@@ -500,7 +504,7 @@ namespace React
 			var babelLoaded = engine.Evaluate<bool>("typeof ReactNET_transform !== 'undefined'");
 			if (!babelLoaded)
 			{
-#if NET40
+#if NET451
 				var assembly = typeof(ReactEnvironment).Assembly;
 #else
 				var assembly = typeof(ReactEnvironment).GetTypeInfo().Assembly;

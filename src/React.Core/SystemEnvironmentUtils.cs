@@ -17,7 +17,7 @@ namespace React
 	/// </summary>
 	public static class SystemEnvironmentUtils
 	{
-#if NET40
+#if NET451
 		[DllImport("libc")]
 		private static extern int uname(IntPtr buf);
 #endif
@@ -34,7 +34,7 @@ namespace React
 
 		private readonly static Lazy<bool> _isRunningOnMac = new Lazy<bool>(() =>
 		{
-#if NET40
+#if NET451
 			if (Environment.OSVersion.Platform != PlatformID.Unix)
 			{
 				return false;

@@ -27,7 +27,7 @@ namespace React
 		/// <returns><c>true</c> if VroomJs is supported</returns>
 		public static bool EnvironmentSupportsVroomJs()
 		{
-#if NET40
+#if NET451
 			return Environment.OSVersion.Platform == PlatformID.Unix;
 #else
 			return
@@ -42,7 +42,7 @@ namespace React
 		/// <returns><c>true</c> if ClearScript is supported</returns>
 		public static bool EnvironmentSupportsClearScript()
 		{
-#if NET40
+#if NET451
 			return Environment.OSVersion.Platform == PlatformID.Win32NT;
 #else
 			return false;
