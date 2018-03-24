@@ -4,7 +4,7 @@
     <Copyright>Copyright 2014-Present Facebook, Inc</Copyright>
     <AssemblyTitle>ReactJS.NET OWIN Sample</AssemblyTitle>
     <Authors>Daniel Lo Nigro</Authors>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>net451</TargetFramework>
     <AssemblyName>React.Sample.Owin</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>React.Sample.Owin</PackageId>

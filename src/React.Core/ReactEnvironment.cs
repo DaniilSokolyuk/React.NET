@@ -368,7 +368,7 @@ namespace React
 			var engine = _engineFactory.GetEngineForCurrentThread();
 			EnsureBabelLoaded(engine);
 
-#if NET40
+#if NET451
 			try
 			{
 				return engine.CallFunctionReturningJson<T>(function, args);
@@ -420,7 +420,7 @@ namespace React
 		/// </summary>
 		private static string GetVersion()
 		{
-#if NET40
+#if NET451
 			var assembly = Assembly.GetExecutingAssembly();
 			var rawVersion = FileVersionInfo.GetVersionInfo(assembly.Location).FileVersion;
 #else
@@ -500,7 +500,7 @@ namespace React
 			var babelLoaded = engine.Evaluate<bool>("typeof ReactNET_transform !== 'undefined'");
 			if (!babelLoaded)
 			{
-#if NET40
+#if NET451
 				var assembly = typeof(ReactEnvironment).Assembly;
 #else
 				var assembly = typeof(ReactEnvironment).GetTypeInfo().Assembly;

@@ -17,7 +17,7 @@ namespace React
 	/// <summary>
 	/// Represents the data contained in a source map
 	/// </summary>
-#if NET40
+#if NET451
 	[Serializable]
 #endif
 	public class SourceMap

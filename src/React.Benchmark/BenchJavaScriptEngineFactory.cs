@@ -15,7 +15,6 @@ namespace React.Benchmark
 
 	    public void DisposeEngineForCurrentThread()
 	    {
-		    throw new NotImplementedException();
 	    }
 
 	    public PooledJsEngine GetEngine()

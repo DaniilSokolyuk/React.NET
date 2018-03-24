@@ -10,13 +10,16 @@ namespace React.Benchmark
     class CustomPooledeEngine : PooledJsEngine
 	{
 		public override IJsEngine InnerEngine => new BenchEngine();
+
+		public override void Dispose()
+		{
+		}
 	}
 
 	public class BenchEngine : IJsEngine
 	{
 		public void Dispose()
 		{
-			throw new NotImplementedException();
 		}
 
 		public object Evaluate(string expression)
@@ -31,7 +34,12 @@ namespace React.Benchmark
 
 		public T Evaluate<T>(string expression)
 		{
-			throw new NotImplementedException();
+			if (typeof(T) == typeof(bool))
+			{
+				return (T)(object)true;
+			}
+
+			return (T)(object)expression;
 		}
 
 		public T Evaluate<T>(string expression, string documentName)
