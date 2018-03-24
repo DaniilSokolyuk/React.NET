@@ -209,9 +209,16 @@ namespace React
 		/// <returns>JavaScript</returns>
 		public string RenderJavaScript()
 		{
-			var writer = new StringWriter();
-			RenderJavaScript(writer);
-			return writer.ToString();
+			var pooledWriter = new ReactPooledTextWriter(ReactArrayPool<char>.Instance);
+			try
+			{
+				RenderJavaScript(pooledWriter);
+				return pooledWriter.ToString();
+			}
+			finally
+			{
+				pooledWriter.Dispose();
+			}
 		}
 
 		/// <summary>
