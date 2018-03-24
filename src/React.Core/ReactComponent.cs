@@ -27,10 +27,7 @@ namespace React
 	{
 		private static readonly ConcurrentDictionary<string, bool> _componentNameValidCache = new ConcurrentDictionary<string, bool>();
 
-		[ThreadStatic]
-		private static StringWriter _sharedStringWriter;
-
-		private PagedPooledTextWriter _serializedProps;
+		private ReactPooledTextWriter _serializedProps;
 
 		/// <summary>
 		/// Regular expression used to validate JavaScript identifiers. Used to ensure component
@@ -49,6 +46,10 @@ namespace React
 		/// </summary>
 		protected readonly IReactSiteConfiguration _configuration;
 
+		/// <summary>
+		/// Raw props for this component
+		/// </summary>
+		protected object _props;
 
 		/// <summary>
 		/// Gets or sets the name of the component
@@ -74,8 +75,6 @@ namespace React
 		/// Get or sets if this components only should be rendered server side
 		/// </summary>
 		public bool ServerOnly { get; set; }
-
-		private object _props;
 
 		/// <summary>
 		/// Gets or sets the props for this component
@@ -117,9 +116,16 @@ namespace React
 		/// <returns>HTML</returns>
 		public string RenderHtml(bool renderContainerOnly = false, bool renderServerOnly = false, Action<Exception, string, string> exceptionHandler = null)
 		{
-			var writer = new StringWriter();
-			RenderHtml(writer, renderContainerOnly, renderServerOnly, exceptionHandler);
-			return writer.ToString();
+			var pooledWriter = new ReactPooledTextWriter(ReactArrayPool<char>.Instance);
+			try
+			{
+				RenderHtml(pooledWriter, renderContainerOnly, renderServerOnly, exceptionHandler);
+				return pooledWriter.ToString();
+			}
+			finally
+			{
+				pooledWriter.Dispose();
+			}
 		}
 
 		/// <summary>
@@ -146,25 +152,14 @@ namespace React
 			var html = string.Empty;
 			if (!renderContainerOnly)
 			{
-				var stringWriter = _sharedStringWriter;
-				if (stringWriter != null)
-				{
-					stringWriter.GetStringBuilder().Clear();
-				}
-				else
-				{
-					_sharedStringWriter =
-						stringWriter =
-						new StringWriter(new StringBuilder(512));
-				}
-
+				var pooledWriter = new ReactPooledTextWriter(ReactArrayPool<char>.Instance);
 				try
 				{
-					stringWriter.Write(renderServerOnly ? "ReactDOMServer.renderToStaticMarkup(" : "ReactDOMServer.renderToString(");
-					WriteComponentInitialiser(stringWriter);
-					stringWriter.Write(')');
+					pooledWriter.Write(renderServerOnly ? "ReactDOMServer.renderToStaticMarkup(" : "ReactDOMServer.renderToString(");
+					WriteComponentInitialiser(pooledWriter);
+					pooledWriter.Write(')');
 
-					html = _environment.Execute<string>(stringWriter.ToString());
+					html = _environment.Execute<string>(pooledWriter.ToString());
 
 					if (renderServerOnly)
 					{
@@ -180,6 +175,10 @@ namespace React
 					}
 
 					exceptionHandler(ex, ComponentName, ContainerId);
+				}
+				finally
+				{
+					pooledWriter.Dispose();
 				}
 			}
 
@@ -270,7 +269,7 @@ namespace React
 			{
 				var pool = ReactArrayPool<char>.Instance;
 
-				_serializedProps = new PagedPooledTextWriter(pool);
+				_serializedProps = new ReactPooledTextWriter(pool);
 
 				using (var jsonWriter = new JsonTextWriter(_serializedProps))
 				{

@@ -6,16 +6,16 @@ using Newtonsoft.Json;
 
 namespace React.Core
 {
-	internal class PagedPooledTextWriter : TextWriter
+	public class ReactPooledTextWriter : TextWriter
 	{
 		private readonly IArrayPool<char> _pool;
 
-		public PagedPooledTextWriter(IArrayPool<char> pool)
+		public ReactPooledTextWriter(IArrayPool<char> pool)
 		{
 			_pool = pool;
 		}
 
-		public const int PageSize = 1024;
+		private const int PageSize = 1024;
 
 		private int _charIndex;
 
@@ -69,11 +69,7 @@ namespace React.Core
 			{
 				var page = pages[i];
 				var pageLength = Math.Min(length, page.Length);
-				if (pageLength != 0)
-				{
-					writer.Write(page, index: 0, count: pageLength);
-				}
-
+				writer.Write(page, index: 0, count: pageLength);
 				length -= pageLength;
 			}
 		}
@@ -94,6 +90,40 @@ namespace React.Core
 			}
 
 			Write(buffer, 0, buffer.Length);
+		}
+
+		public override string ToString()
+		{
+			var length = Length;
+
+			if (length == 0)
+			{
+				return string.Empty;
+			}
+
+			char[] sb = _pool.Rent(length);
+
+			int index = 0;
+
+			try
+			{
+				for (var i = 0; i < pages.Count; i++)
+				{
+					var page = pages[i];
+					var pageLength = Math.Min(length, page.Length);
+
+					Array.Copy(page, 0, sb, index, pageLength);
+
+					length -= pageLength;
+					index += pageLength;
+				}
+
+				return new string(sb, 0, index);
+			}
+			finally
+			{
+				_pool.Return(sb);
+			}
 		}
 
 		public override void Write(char[] buffer, int index, int count)
@@ -153,7 +183,7 @@ namespace React.Core
 				count -= copyLength;
 			}
 		}
-
+		
 
 		protected override void Dispose(bool disposing)
 		{

@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace React.Core
 {
-	internal class ReactArrayPool<T> : IArrayPool<T>
+	public class ReactArrayPool<T> : IArrayPool<T>
 	{
 		public static ReactArrayPool<T> Instance = new ReactArrayPool<T>();
 

@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading;
 using JavaScriptEngineSwitcher.Core;
 using JSPool;
+using React.Core;
 using React.Exceptions;
 using React.TinyIoC;
 
@@ -329,9 +330,16 @@ namespace React
 		/// <returns>JavaScript for all components</returns>
 		public string GetInitJavaScript(bool clientOnly = false)
 		{
-			var writer = new StringWriter();
-			GetInitJavaScript(writer, clientOnly);
-			return writer.ToString();
+			var pooledWriter = new ReactPooledTextWriter(ReactArrayPool<char>.Instance);
+			try
+			{
+				GetInitJavaScript(pooledWriter, clientOnly);
+				return pooledWriter.ToString();
+			}
+			finally
+			{
+				pooledWriter.Dispose();
+			}
 		}
 
 		/// <summary>

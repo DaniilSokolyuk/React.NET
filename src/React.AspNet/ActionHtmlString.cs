@@ -11,8 +11,8 @@ using System;
 using System.IO;
 
 #if LEGACYASPNET
-using System.Text;
 using System.Web;
+using React.Core;
 #else
 using System.Text.Encodings.Web;
 using IHtmlString = Microsoft.AspNetCore.Html.IHtmlContent;
@@ -41,25 +41,20 @@ namespace React.AspNet
 		}
 
 #if LEGACYASPNET
-		[ThreadStatic]
-		private static StringWriter _sharedStringWriter;
-
 		/// <summary>Returns an HTML-encoded string.</summary>
 		/// <returns>An HTML-encoded string.</returns>
 		public string ToHtmlString()
 		{
-			var stringWriter = _sharedStringWriter;
-			if (stringWriter != null)
+			var pooledWriter = new ReactPooledTextWriter(ReactArrayPool<char>.Instance);
+			try
 			{
-				stringWriter.GetStringBuilder().Clear();
+				_textWriter(pooledWriter);
+				return pooledWriter.ToString();
 			}
-			else
+			finally
 			{
-				_sharedStringWriter = stringWriter = new StringWriter(new StringBuilder(512));
+				pooledWriter.Dispose();
 			}
-
-			_textWriter(stringWriter);
-			return stringWriter.ToString();
 		}
 #else
 		/// <summary>
