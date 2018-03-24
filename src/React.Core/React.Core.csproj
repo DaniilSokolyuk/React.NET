@@ -5,7 +5,7 @@
     <Copyright>Copyright 2014-Present Facebook, Inc</Copyright>
     <AssemblyTitle>ReactJS.NET Core</AssemblyTitle>
     <Authors>Daniel Lo Nigro</Authors>
-    <TargetFrameworks>net40;netstandard1.6</TargetFrameworks>
+    <TargetFrameworks>net40;net451;netstandard1.6</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>React.Core</AssemblyName>
     <AssemblyOriginatorKeyFile>../key.snk</AssemblyOriginatorKeyFile>
@@ -40,12 +40,16 @@
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net40' OR '$(TargetFramework)' == 'net451'">
     <PackageReference Include="JavaScriptEngineSwitcher.V8" Version="2.4.2" />
     <PackageReference Include="VroomJs" Version="1.2.3" />
     <Reference Include="System.Runtime.Caching" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+    
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' OR '$(TargetFramework)' == 'net451'">
+    <PackageReference Include="System.Buffers" Version="4.4.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' ">

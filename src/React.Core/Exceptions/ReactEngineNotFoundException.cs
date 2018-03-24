@@ -15,7 +15,7 @@ namespace React.Exceptions
 	/// <summary>
 	/// Thrown when no valid JavaScript engine is found.
 	/// </summary>
-#if NET40
+#if NET40 || NET451
 	[Serializable]
 #endif
 	public class ReactEngineNotFoundException : ReactException
@@ -31,7 +31,7 @@ namespace React.Exceptions
 		/// <param name="message">The message that describes the error.</param>
 		public ReactEngineNotFoundException(string message) : base(message) { }
 
-#if NET40
+#if NET40 || NET451
 		/// <summary>
 		/// Used by deserialization
 		/// </summary>

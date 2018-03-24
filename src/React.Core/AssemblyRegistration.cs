@@ -1,4 +1,4 @@
-﻿/*
+/*
  *  Copyright (c) 2014-Present, Facebook, Inc.
  *  All rights reserved.
  *
@@ -8,6 +8,8 @@
  */
 
 using JavaScriptEngineSwitcher.Core;
+using Newtonsoft.Json;
+using React.Core;
 using React.TinyIoC;
 
 namespace React
@@ -37,6 +39,8 @@ namespace React
 			container.Register<IFileCacheHash, FileCacheHash>().AsPerRequestSingleton();
 			container.Register<JsEngineSwitcher>((c, o) => JsEngineSwitcher.Instance);
 			container.Register<IJavaScriptEngineFactory, JavaScriptEngineFactory>().AsSingleton();
+
+			container.Register<IArrayPool<char>, ReactArrayPool<char>>().AsSingleton();
 
 			container.Register<IReactEnvironment, ReactEnvironment>().AsPerRequestSingleton();
 		}

@@ -15,7 +15,7 @@ namespace React.Exceptions
 	/// <summary>
 	/// Thrown when a non-existent component is rendered.
 	/// </summary>
-#if NET40
+#if NET40 || NET451
 	[Serializable]
 #endif
 	public class ReactInvalidComponentException : ReactException
@@ -33,7 +33,7 @@ namespace React.Exceptions
 		public ReactInvalidComponentException(string message, Exception innerException)
 			: base(message, innerException) { }
 
-#if NET40
+#if NET40 || NET451
 		/// <summary>
 		/// Used by deserialization
 		/// </summary>

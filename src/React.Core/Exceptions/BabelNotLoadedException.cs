@@ -15,7 +15,7 @@ namespace React.Exceptions
 	/// <summary>
 	/// Thrown when Babel is required but has not been loaded.
 	/// </summary>
-#if NET40
+#if NET40 || NET451
 	[Serializable]
 #endif
 	public class BabelNotLoadedException : ReactException
@@ -25,7 +25,7 @@ namespace React.Exceptions
 		/// </summary>
 		public BabelNotLoadedException() : base(GetMessage()) { }
 
-#if NET40
+#if NET40 || NET451
 		/// <summary>
 		/// Used by deserialization
 		/// </summary>

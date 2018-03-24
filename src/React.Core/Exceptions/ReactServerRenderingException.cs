@@ -15,7 +15,7 @@ namespace React.Exceptions
 	/// <summary>
 	/// Thrown when an error occurs during server rendering of a React component.
 	/// </summary>
-#if NET40
+#if NET40 || NET451
 	[Serializable]
 #endif
 	public class ReactServerRenderingException : ReactException
@@ -34,7 +34,7 @@ namespace React.Exceptions
 		public ReactServerRenderingException(string message, Exception innerException)
 			: base(message, innerException) { }
 
-#if NET40
+#if NET40 || NET451
 		/// <summary>
 		/// Used by deserialization
 		/// </summary>

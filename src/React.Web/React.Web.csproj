@@ -5,7 +5,7 @@
     <Copyright>Copyright 2014-Present Facebook, Inc</Copyright>
     <AssemblyTitle>ReactJS.NET for ASP.NET 4</AssemblyTitle>
     <Authors>Daniel Lo Nigro</Authors>
-    <TargetFramework>net40</TargetFramework>
+    <TargetFrameworks>net40;net451</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>React.Web</AssemblyName>
     <AssemblyOriginatorKeyFile>../key.snk</AssemblyOriginatorKeyFile>
@@ -37,7 +37,7 @@
     <PackageReference Include="WebActivatorEx" Version="2.2.0" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net40' OR '$(TargetFramework)' == 'net451'">
     <Reference Include="System.Web" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />

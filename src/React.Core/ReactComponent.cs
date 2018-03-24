@@ -15,6 +15,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using JavaScriptEngineSwitcher.Core;
 using Newtonsoft.Json;
+using React.Core;
 using React.Exceptions;
 
 namespace React
@@ -28,7 +29,9 @@ namespace React
 
 		[ThreadStatic]
 		private static StringWriter _sharedStringWriter;
-		
+
+		private PagedPooledTextWriter _serializedProps;
+
 		/// <summary>
 		/// Regular expression used to validate JavaScript identifiers. Used to ensure component
 		/// names are valid.
@@ -45,6 +48,7 @@ namespace React
 		/// Global site configuration
 		/// </summary>
 		protected readonly IReactSiteConfiguration _configuration;
+
 
 		/// <summary>
 		/// Gets or sets the name of the component
@@ -71,10 +75,20 @@ namespace React
 		/// </summary>
 		public bool ServerOnly { get; set; }
 
+		private object _props;
+
 		/// <summary>
 		/// Gets or sets the props for this component
 		/// </summary>
-		public object Props { get; set; }
+		public object Props
+		{
+			get => _props;
+			set
+			{
+				_props = value;
+				_serializedProps = null;
+			}
+		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ReactComponent"/> class.
@@ -139,11 +153,11 @@ namespace React
 				}
 				else
 				{
-					_sharedStringWriter = 
-						stringWriter = 
+					_sharedStringWriter =
+						stringWriter =
 						new StringWriter(new StringBuilder(512));
 				}
-				
+
 				try
 				{
 					stringWriter.Write(renderServerOnly ? "ReactDOMServer.renderToStaticMarkup(" : "ReactDOMServer.renderToString(");
@@ -168,7 +182,7 @@ namespace React
 					exceptionHandler(ex, ComponentName, ContainerId);
 				}
 			}
-			
+
 			writer.Write('<');
 			writer.Write(ContainerTag);
 			writer.Write(" id=\"");
@@ -180,7 +194,7 @@ namespace React
 				writer.Write(ContainerClass);
 				writer.Write('"');
 			}
-			
+
 			writer.Write('>');
 			writer.Write(html);
 			writer.Write("</");
@@ -200,7 +214,7 @@ namespace React
 			RenderJavaScript(writer);
 			return writer.ToString();
 		}
-		
+
 		/// <summary>
 		/// Renders the JavaScript required to initialise this component client-side. This will
 		/// initialise the React component, which includes attach event handlers to the
@@ -252,15 +266,24 @@ namespace React
 		/// <param name="writer">The <see cref="T:System.IO.TextWriter" /> to which the content is written</param>
 		protected void WriteSerializedProps(TextWriter writer)
 		{
-			//TODO: cache
-			using (var jsonWriter = new JsonTextWriter(writer))
+			if (_serializedProps == null)
 			{
-				jsonWriter.CloseOutput = false;
-				jsonWriter.AutoCompleteOnClose = false;
+				var pool = AssemblyRegistration.Container.Resolve<IArrayPool<char>>();
 
-				var jsonSerializer = JsonSerializer.Create(_configuration.JsonSerializerSettings);
-				jsonSerializer.Serialize(jsonWriter, Props);
+				_serializedProps = new PagedPooledTextWriter(pool);
+
+				using (var jsonWriter = new JsonTextWriter(_serializedProps))
+				{
+					jsonWriter.CloseOutput = false;
+					jsonWriter.AutoCompleteOnClose = false;
+					jsonWriter.ArrayPool = pool;
+
+					var jsonSerializer = JsonSerializer.Create(_configuration.JsonSerializerSettings);
+					jsonSerializer.Serialize(jsonWriter, Props);
+				}
 			}
+
+			_serializedProps.WriteTo(writer);
 		}
 
 		/// <summary>
@@ -274,6 +297,14 @@ namespace React
 			{
 				throw new ReactInvalidComponentException($"Invalid component name '{componentName}'");
 			}
+		}
+
+		/// <summary>
+		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources
+		/// </summary>
+		public virtual void Dispose()
+		{
+			_serializedProps?.Dispose();
 		}
 	}
 }

@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading;
 using JavaScriptEngineSwitcher.Core;
 using JavaScriptEngineSwitcher.Msie;
-#if NET40
+#if NET40 || NET451
 using JavaScriptEngineSwitcher.V8;
 #else
 using JavaScriptEngineSwitcher.ChakraCore;
@@ -117,7 +117,7 @@ namespace React
 		/// </summary>
 		protected virtual void InitialiseEngine(IJsEngine engine)
 		{
-#if NET40
+#if NET40 || NET451
 			var thisAssembly = typeof(ReactEnvironment).Assembly;
 #else
 			var thisAssembly = typeof(ReactEnvironment).GetTypeInfo().Assembly;
@@ -285,7 +285,7 @@ namespace React
 
 			// Epic fail, none of the engines worked. Nothing we can do now.
 			// Throw an error relevant to the engine they should be able to use.
-#if NET40
+#if NET40 || NET451
 			if (JavaScriptEngineUtils.EnvironmentSupportsClearScript())
 			{
 				JavaScriptEngineUtils.EnsureEngineFunctional<V8JsEngine, ClearScriptV8InitialisationException>(
@@ -293,7 +293,7 @@ namespace React
 				);
 			}
 #endif
-#if NET40 || NETSTANDARD1_6
+#if NET40 || NET451 || NETSTANDARD1_6
 			if (JavaScriptEngineUtils.EnvironmentSupportsVroomJs())
 			{
 				JavaScriptEngineUtils.EnsureEngineFunctional<VroomJsEngine, VroomJsInitialisationException>(
@@ -376,7 +376,7 @@ namespace React
 				"for more information."
 			);
 
-#if NET40
+#if NET40 || NET451
 			jsEngineSwitcher.EngineFactories.AddV8();
 #endif
 			jsEngineSwitcher.EngineFactories.Add(new VroomJsEngine.Factory());
@@ -384,7 +384,7 @@ namespace React
 			{
 				jsEngineSwitcher.EngineFactories.AddMsie();
 			}
-#if !NET40
+#if NETSTANDARD1_6
 			jsEngineSwitcher.EngineFactories.AddChakraCore();
 #endif
 		}

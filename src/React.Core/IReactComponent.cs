@@ -15,7 +15,7 @@ namespace React
 	/// <summary>
 	/// Represents a React JavaScript component.
 	/// </summary>
-	public interface IReactComponent
+	public interface IReactComponent : IDisposable
 	{
 		/// <summary>
 		/// Gets or sets the props for this component
