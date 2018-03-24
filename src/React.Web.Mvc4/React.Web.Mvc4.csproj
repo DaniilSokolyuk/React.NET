@@ -5,7 +5,7 @@
     <Copyright>Copyright 2014-Present Facebook, Inc</Copyright>
     <AssemblyTitle>ReactJS.NET (MVC 4 and 5)</AssemblyTitle>
     <Authors>Daniel Lo Nigro</Authors>
-    <TargetFramework>net40</TargetFramework>
+    <TargetFramework>net451</TargetFramework>
     <DefineConstants>$(DefineConstants);LEGACYASPNET</DefineConstants>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>React.Web.Mvc4</AssemblyName>
@@ -38,7 +38,7 @@
     <PackageReference Include="Microsoft.AspNet.Mvc" Version="4.0.20710" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <Reference Include="System.Web" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />

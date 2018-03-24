@@ -8,6 +8,7 @@
  */
 
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using JavaScriptEngineSwitcher.Core;
 using Newtonsoft.Json;
+using React.Core;
 using React.Exceptions;
 
 namespace React
@@ -28,6 +30,8 @@ namespace React
 
 		[ThreadStatic]
 		private static StringWriter _sharedStringWriter;
+
+		private PagedPooledTextWriter _serializedProps;
 		
 		/// <summary>
 		/// Regular expression used to validate JavaScript identifiers. Used to ensure component
@@ -45,6 +49,7 @@ namespace React
 		/// Global site configuration
 		/// </summary>
 		protected readonly IReactSiteConfiguration _configuration;
+
 
 		/// <summary>
 		/// Gets or sets the name of the component
@@ -71,10 +76,20 @@ namespace React
 		/// </summary>
 		public bool ServerOnly { get; set; }
 
+		private object _props;
+
 		/// <summary>
 		/// Gets or sets the props for this component
 		/// </summary>
-		public object Props { get; set; }
+		public object Props
+		{
+			get => _props;
+			set
+			{
+				_props = value;
+				_serializedProps = null;
+			}
+		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ReactComponent"/> class.
@@ -252,15 +267,22 @@ namespace React
 		/// <param name="writer">The <see cref="T:System.IO.TextWriter" /> to which the content is written</param>
 		protected void WriteSerializedProps(TextWriter writer)
 		{
-			//TODO: cache
-			using (var jsonWriter = new JsonTextWriter(writer))
+			if (_serializedProps == null)
 			{
-				jsonWriter.CloseOutput = false;
-				jsonWriter.AutoCompleteOnClose = false;
+				var pool = ArrayPool<char>.Shared;
+				_serializedProps = new PagedPooledTextWriter(pool);
 
-				var jsonSerializer = JsonSerializer.Create(_configuration.JsonSerializerSettings);
-				jsonSerializer.Serialize(jsonWriter, Props);
+				using (var jsonWriter = new JsonTextWriter(_serializedProps))
+				{
+					jsonWriter.CloseOutput = false;
+					jsonWriter.AutoCompleteOnClose = false;
+
+					var jsonSerializer = JsonSerializer.Create(_configuration.JsonSerializerSettings);
+					jsonSerializer.Serialize(jsonWriter, Props);
+				}
 			}
+
+			_serializedProps.WriteTo(writer);
 		}
 
 		/// <summary>
@@ -274,6 +296,14 @@ namespace React
 			{
 				throw new ReactInvalidComponentException($"Invalid component name '{componentName}'");
 			}
+		}
+
+		/// <summary>
+		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources
+		/// </summary>
+		public virtual void Dispose()
+		{
+			_serializedProps?.Dispose();
 		}
 	}
 }

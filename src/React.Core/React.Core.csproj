@@ -5,7 +5,7 @@
     <Copyright>Copyright 2014-Present Facebook, Inc</Copyright>
     <AssemblyTitle>ReactJS.NET Core</AssemblyTitle>
     <Authors>Daniel Lo Nigro</Authors>
-    <TargetFrameworks>net40;netstandard1.6</TargetFrameworks>
+    <TargetFrameworks>net451;netstandard1.6</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>React.Core</AssemblyName>
     <AssemblyOriginatorKeyFile>../key.snk</AssemblyOriginatorKeyFile>
@@ -38,9 +38,10 @@
     <PackageReference Include="JSPool" Version="3.0.1" />
     <PackageReference Include="MsieJavaScriptEngine" Version="2.2.2" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="System.Buffers" Version="4.4.0" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <PackageReference Include="JavaScriptEngineSwitcher.V8" Version="2.4.2" />
     <PackageReference Include="VroomJs" Version="1.2.3" />
     <Reference Include="System.Runtime.Caching" />

@@ -15,7 +15,7 @@ namespace React.Exceptions
 	/// <summary>
 	/// Thrown when an error occurs when transforming a JavaScript file via Babel.
 	/// </summary>
-#if NET40
+#if NET451
 	[Serializable]
 #endif
 	public class BabelException : ReactException
@@ -33,7 +33,7 @@ namespace React.Exceptions
 		public BabelException(string message, Exception innerException)
 			: base(message, innerException) { }
 
-#if NET40
+#if NET451
 		/// <summary>
 		/// Used by deserialization
 		/// </summary>

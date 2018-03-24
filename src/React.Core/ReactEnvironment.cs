@@ -156,26 +156,17 @@ namespace React
 		/// <summary>
 		/// Gets the Babel transformer for this environment.
 		/// </summary>
-		public virtual IBabel Babel
-		{
-			get { return _babelTransformer.Value; }
-		}
+		public virtual IBabel Babel => _babelTransformer.Value;
 
 		/// <summary>
 		/// Gets the version of the JavaScript engine in use by ReactJS.NET
 		/// </summary>
-		public virtual string EngineVersion
-		{
-			get { return Engine.Name + " " + Engine.Version; }
-		}
+		public virtual string EngineVersion => Engine.Name + " " + Engine.Version;
 
 		/// <summary>
 		/// Gets the version number of ReactJS.NET
 		/// </summary>
-		public virtual string Version
-		{
-			get { return _version.Value; }
-		}
+		public virtual string Version => _version.Value;
 
 		/// <summary>
 		/// Ensures any user-provided scripts have been loaded. This only loads JSX files; files
@@ -379,7 +370,7 @@ namespace React
 			var engine = _engineFactory.GetEngineForCurrentThread();
 			EnsureBabelLoaded(engine);
 
-#if NET40
+#if NET451
 			try
 			{
 				return engine.CallFunctionReturningJson<T>(function, args);
@@ -431,7 +422,7 @@ namespace React
 		/// </summary>
 		private static string GetVersion()
 		{
-#if NET40
+#if NET451
 			var assembly = Assembly.GetExecutingAssembly();
 			var rawVersion = FileVersionInfo.GetVersionInfo(assembly.Location).FileVersion;
 #else
@@ -451,6 +442,11 @@ namespace React
 		{
 			_engineFactory.DisposeEngineForCurrentThread();
 			ReturnEngineToPool();
+			foreach (var component in _components)
+			{
+				component.Dispose();
+			}
+			_components.Clear();
 		}
 
 		/// <summary>
@@ -492,10 +488,7 @@ namespace React
 		/// <summary>
 		/// Gets the site-wide configuration.
 		/// </summary>
-		public virtual IReactSiteConfiguration Configuration
-		{
-			get { return _config; }
-		}
+		public virtual IReactSiteConfiguration Configuration => _config;
 
 		/// <summary>
 		/// Ensures that Babel has been loaded into the JavaScript engine.
@@ -511,7 +504,7 @@ namespace React
 			var babelLoaded = engine.Evaluate<bool>("typeof ReactNET_transform !== 'undefined'");
 			if (!babelLoaded)
 			{
-#if NET40
+#if NET451
 				var assembly = typeof(ReactEnvironment).Assembly;
 #else
 				var assembly = typeof(ReactEnvironment).GetTypeInfo().Assembly;

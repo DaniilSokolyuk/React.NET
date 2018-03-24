@@ -15,7 +15,7 @@ namespace React.Exceptions
 	/// <summary>
 	/// Thrown when the VroomJs V8 JavaScript engine fails to initialise.
 	/// </summary>
-#if NET40
+#if NET451
 	[Serializable]
 #endif
 	public class VroomJsInitialisationException : ReactException
@@ -26,7 +26,7 @@ namespace React.Exceptions
 		public VroomJsInitialisationException(string innerMessage) : 
 			base(GetMessage(innerMessage)) { }
 
-#if NET40
+#if NET451
 		/// <summary>
 		/// Used by deserialization
 		/// </summary>
