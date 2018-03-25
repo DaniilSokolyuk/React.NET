@@ -45,15 +45,10 @@ namespace React.AspNet
 		/// <returns>An HTML-encoded string.</returns>
 		public string ToHtmlString()
 		{
-			var pooledWriter = new ReactPooledTextWriter(ReactArrayPool<char>.Instance);
-			try
+			using (var pooledWriter = new ReactPooledTextWriter(ReactArrayPool<char>.Instance))
 			{
 				_textWriter(pooledWriter);
 				return pooledWriter.ToString();
-			}
-			finally
-			{
-				pooledWriter.Dispose();
 			}
 		}
 #else

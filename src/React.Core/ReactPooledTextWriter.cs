@@ -37,26 +37,6 @@ namespace React.Core
 			}
 		}
 
-		public void Clear()
-		{
-			for (var i = pages.Count - 1; i > 0; i--)
-			{
-				var page = pages[i];
-
-				try
-				{
-					pages.RemoveAt(i);
-				}
-				finally
-				{
-					_pool.Return(page);
-				}
-			}
-
-			_charIndex = 0;
-			CurrentPage = pages.Count > 0 ? pages[0] : null;
-		}
-
 		public void WriteTo(TextWriter writer)
 		{
 			var length = Length;
@@ -92,37 +72,31 @@ namespace React.Core
 			Write(buffer, 0, buffer.Length);
 		}
 
-		public override string ToString()
+		public override void Write(string value)
 		{
-			var length = Length;
-
-			if (length == 0)
+			if (value == null)
 			{
-				return string.Empty;
+				return;
 			}
 
-			char[] sb = _pool.Rent(length);
+			var index = 0;
+			var count = value.Length;
 
-			int index = 0;
-
-			try
+			while (count > 0)
 			{
-				for (var i = 0; i < pages.Count; i++)
-				{
-					var page = pages[i];
-					var pageLength = Math.Min(length, page.Length);
+				var page = GetCurrentPage();
+				var copyLength = Math.Min(count, page.Length - _charIndex);
 
-					Array.Copy(page, 0, sb, index, pageLength);
+				value.CopyTo(
+					index,
+					page,
+					_charIndex,
+					copyLength);
 
-					length -= pageLength;
-					index += pageLength;
-				}
+				_charIndex += copyLength;
+				index += copyLength;
 
-				return new string(sb, 0, index);
-			}
-			finally
-			{
-				_pool.Return(sb);
+				count -= copyLength;
 			}
 		}
 
@@ -151,49 +125,24 @@ namespace React.Core
 			}
 		}
 
-		public override void Write(string value)
+		public void Clear()
 		{
-			if (value == null)
+			for (var i = pages.Count - 1; i > 0; i--)
 			{
-				return;
+				var page = pages[i];
+
+				try
+				{
+					pages.RemoveAt(i);
+				}
+				finally
+				{
+					_pool.Return(page);
+				}
 			}
 
-			if (value == null)
-			{
-				return;
-			}
-
-			var index = 0;
-			var count = value.Length;
-
-			while (count > 0)
-			{
-				var page = GetCurrentPage();
-				var copyLength = Math.Min(count, page.Length - _charIndex);
-
-				value.CopyTo(
-					index,
-					page,
-					_charIndex,
-					copyLength);
-
-				_charIndex += copyLength;
-				index += copyLength;
-
-				count -= copyLength;
-			}
-		}
-		
-
-		protected override void Dispose(bool disposing)
-		{
-			base.Dispose(disposing);
-			for (var i = 0; i < pages.Count; i++)
-			{
-				_pool.Return(pages[i]);
-			}
-
-			pages.Clear();
+			_charIndex = 0;
+			CurrentPage = pages.Count > 0 ? pages[0] : null;
 		}
 
 		private char[] GetCurrentPage()
@@ -222,6 +171,56 @@ namespace React.Core
 			}
 
 			return page;
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+			for (var i = 0; i < pages.Count; i++)
+			{
+				_pool.Return(pages[i]);
+			}
+
+			pages.Clear();
+		}
+
+		public override string ToString()
+		{
+			var length = Length;
+
+			if (length == 0)
+			{
+				return string.Empty;
+			}
+
+			if (pages.Count == 1)
+			{
+				return new string(pages[0], 0, length);
+			}
+
+			char[] sb = _pool.Rent(length);
+
+			int index = 0;
+
+			try
+			{
+				for (var i = 0; i < pages.Count; i++)
+				{
+					var page = pages[i];
+					var pageLength = Math.Min(length, page.Length);
+
+					Array.Copy(page, 0, sb, index, pageLength);
+
+					length -= pageLength;
+					index += pageLength;
+				}
+
+				return new string(sb, 0, index);
+			}
+			finally
+			{
+				_pool.Return(sb);
+			}
 		}
 	}
 }

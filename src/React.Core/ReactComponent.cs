@@ -116,15 +116,10 @@ namespace React
 		/// <returns>HTML</returns>
 		public string RenderHtml(bool renderContainerOnly = false, bool renderServerOnly = false, Action<Exception, string, string> exceptionHandler = null)
 		{
-			var pooledWriter = new ReactPooledTextWriter(ReactArrayPool<char>.Instance);
-			try
+			using (var pooledWriter = new ReactPooledTextWriter(ReactArrayPool<char>.Instance))
 			{
 				RenderHtml(pooledWriter, renderContainerOnly, renderServerOnly, exceptionHandler);
 				return pooledWriter.ToString();
-			}
-			finally
-			{
-				pooledWriter.Dispose();
 			}
 		}
 
@@ -209,15 +204,10 @@ namespace React
 		/// <returns>JavaScript</returns>
 		public string RenderJavaScript()
 		{
-			var pooledWriter = new ReactPooledTextWriter(ReactArrayPool<char>.Instance);
-			try
+			using (var pooledWriter = new ReactPooledTextWriter(ReactArrayPool<char>.Instance))
 			{
 				RenderJavaScript(pooledWriter);
 				return pooledWriter.ToString();
-			}
-			finally
-			{
-				pooledWriter.Dispose();
 			}
 		}
 

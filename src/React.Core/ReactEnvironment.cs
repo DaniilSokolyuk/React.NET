@@ -330,15 +330,10 @@ namespace React
 		/// <returns>JavaScript for all components</returns>
 		public string GetInitJavaScript(bool clientOnly = false)
 		{
-			var pooledWriter = new ReactPooledTextWriter(ReactArrayPool<char>.Instance);
-			try
+			using (var pooledWriter = new ReactPooledTextWriter(ReactArrayPool<char>.Instance))
 			{
 				GetInitJavaScript(pooledWriter, clientOnly);
 				return pooledWriter.ToString();
-			}
-			finally
-			{
-				pooledWriter.Dispose();
 			}
 		}
 
